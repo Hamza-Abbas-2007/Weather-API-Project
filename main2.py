@@ -28,4 +28,5 @@ def index():
             return 'there was an issue adding the data to the database'
     
     else:
-        return render_template('index.html')
+        tasks = todo.query.order_by(todo.date_created).all()
+        return render_template('index.html' ,tasks = tasks)
