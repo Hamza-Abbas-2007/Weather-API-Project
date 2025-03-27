@@ -21,7 +21,7 @@
                 <td>
                     <a href="">Update</a>
                     <br>
-                    <a href="">Delete</a>
+                    <a href="{{ url_for('delete', id = task.id)}}">Delete</a>
                 </td>
             </tr>
             {%endfor%}

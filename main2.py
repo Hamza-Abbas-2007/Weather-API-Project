@@ -2,10 +2,12 @@ from flask import Flask,render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import requests
+from diskcache import Cache
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
+cache = Cache('./cache_directory')
 
 class todo (db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -24,11 +26,23 @@ jsonData = response.json()
 info = jsonData["days"][0]
 temp = info["temp"]
 
+def Get_weather():
+    if 'weather' in cache:
+        print("already cached")
+        return cache['weather']
+    if response.status_code == 200:
+        cache.set('weather', temp, expire = 3600)
+        print ("cached sucessfully")
+        return temp
+
+cachedtemp = Get_weather()
+    
+
 @app.route('/' ,methods = ['post','get'])
 def index():
     
     if request.method == 'POST':
-        new_temp = todo(content = str(temp))
+        new_temp = todo(content = str(cachedtemp))
         try:
             db.session.add(new_temp)
             db.session.commit()
@@ -39,3 +53,14 @@ def index():
     else:
         tasks = todo.query.order_by(todo.date_created).all()
         return render_template('index.html' ,tasks = tasks)
+    
+@app.route('/delete/<int:id>')
+def delete(id):
+    task_delete = todo.query.get_or_404(id)
+
+    try:
+        db.session.delete(task_delete)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return 'There was a problem deleting that task'
