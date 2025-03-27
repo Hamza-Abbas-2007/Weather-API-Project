@@ -17,7 +17,7 @@
         {%for task in tasks %}
             <tr>
                 <td>{{task.content}}</td>
-                <td>{{task.date_created}}</td>
+                <td>{{task.date_created.strftime('%Y-%m-%d')}}</td>
                 <td>
                     <a href="">Update</a>
                     <br>
