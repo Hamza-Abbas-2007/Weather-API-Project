@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import requests
 from diskcache import Cache
+import sys
+sys.stdout.write("Hello")
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
@@ -32,7 +34,7 @@ def Get_weather():
         return cache['weather']
     if response.status_code == 200:
         cache.set('weather', temp, expire = 3600)
-        print ("cached sucessfully")
+        print("cached sucessfully")
         return temp
 
 cachedtemp = Get_weather()
