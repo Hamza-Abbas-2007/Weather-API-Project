@@ -14,55 +14,46 @@ cache = Cache('./cache_directory')
 class todo (db.Model):
     id = db.Column(db.Integer, primary_key = True)
     content = db.Column(db.String(200), nullable = False)
+    city_name = db.Column(db.String(200), nullable = False)
     date_created = db.Column(db.DateTime, default = datetime.utcnow)
     
     def __repr__(self):
         return '<task %r>' % self.id
     
 API_KEY = 'PM66FQJM5T8WARQP2K4NH8UVM'
-url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/cairo?unitGroup=metric&include=days&key={API_KEY}"
-response = requests.get(url)
-print(response.status_code)
-jsonData = response.json()
 
-info = jsonData["days"][0]
-temp = info["temp"]
-
-def Get_weather():
-    if 'weather' in cache:
-        print("already cached")
-        return cache['weather']
-    if response.status_code == 200:
-        cache.set('weather', temp, expire = 3600)
-        print("cached sucessfully")
-        return temp
-
-cachedtemp = Get_weather()
+def Get_weather(city):
+    cache_key = f'weather_{city}'
     
+    if cache_key in cache:
+        print("Cache hit: Returning cached temperature")
+        return cache[cache_key]
+
+    url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{city}?unitGroup=metric&include=days&key={API_KEY}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        jsonData = response.json()
+        temp = jsonData["days"][0]["temp"]
+        
+        cache.set(cache_key, temp, expire=60)
+        print(f"Cached successfully for {city}")
+        return temp
 
 @app.route('/' ,methods = ['post','get'])
 def index():
-    
+    city = request.form.get('city')
+    cachedtemp = Get_weather(city) 
     if request.method == 'POST':
-        new_temp = todo(content = str(cachedtemp))
+    
+        new_entry = todo(content=str(cachedtemp), city_name=str(city))
         try:
-            db.session.add(new_temp)
+            db.session.add(new_entry)
             db.session.commit()
             return redirect('/')
         except:
             return 'there was an issue adding the data to the database'
-    
+        
     else:
         tasks = todo.query.order_by(todo.date_created).all()
-        return render_template('index.html' ,tasks = tasks)
-    
-@app.route('/delete/<int:id>')
-def delete(id):
-    task_delete = todo.query.get_or_404(id)
-
-    try:
-        db.session.delete(task_delete)
-        db.session.commit()
-        return redirect('/')
-    except:
-        return 'There was a problem deleting that task'
+        return render_template('index.html' ,tasks = tasks,)

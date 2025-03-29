@@ -1,12 +1,6 @@
-from flask import Flask,render_template, url_for, request, redirect, json
-import json
-from datetime import datetime
+from main2 import app, db  # Import your Flask app and database
 
-API_KEY = 'PM66FQJM5T8WARQP2K4NH8UVM'
-url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/cairo?unitGroup=metric&include=days&key={API_KEY}"
-response = requests.get(url)
-print(response.status_code)
-jsonData = response.json()
+with app.app_context():
+    db.create_all()  # Creates the database tables if they don't exist
 
-info = jsonData["days"][0]
-temp = info["temp"]
+print("Database created successfully!")
