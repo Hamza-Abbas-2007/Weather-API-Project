@@ -48,9 +48,20 @@ def index():
     
         new_entry = todo(content=str(cachedtemp), city_name=str(city))
         try:
-            db.session.add(new_entry)
-            db.session.commit()
-            return redirect('/')
+            if todo.query.count() < 10:
+                db.session.add(new_entry)
+                db.session.commit()
+                return redirect('/')
+            else:
+                oldest_entry = todo.query.order_by(todo.date_created.asc()).first()
+                db.session.delete(oldest_entry)
+                db.session.commit()
+                
+                db.session.add(new_entry)
+                db.session.commit()
+                return redirect('/')
+                
+                
         except:
             return 'there was an issue adding the data to the database'
         
