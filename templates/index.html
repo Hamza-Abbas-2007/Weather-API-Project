@@ -11,12 +11,14 @@
     <table>
         <tr>
             <th>temp</th>
+            <th>Humidity</th>
             <th>date created</th>
             <th>city</th>
         </tr>
         {%for task in tasks %}
             <tr>
                 <td>{{task.content}}</td>
+                <td>{{task.Humidity}}</td>
                 <td>{{task.date_created.strftime('%Y-%m-%d')}}</td>
                 <td>{{task.city_name}}</td>
             </tr>
